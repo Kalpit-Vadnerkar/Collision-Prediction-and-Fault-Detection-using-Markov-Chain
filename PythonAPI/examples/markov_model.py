@@ -22,6 +22,7 @@ import re
 import sys
 import weakref
 import time
+import matplotlib.pyplot as plt
 
 try:
     import pygame
@@ -809,6 +810,7 @@ def game_loop(args):
                 Vx1 = Vx2
                 Vy1 = Vy2
                 set_current_state(next_state)
+                update_plot()
                 #current_state = next_state
 
             if agent.done():
@@ -887,6 +889,26 @@ def save_matrix():
 transition_matrix = np.load(file_path + "/matrix.npy")
 
 tpm = np.zeros((len(states), len(states)))
+row_sums = transition_matrix.sum(axis=1)
+tpm = np.nan_to_num(transition_matrix / row_sums[:, np.newaxis])
+
+future_tpm = tpm * tpm
+for i in range(4):
+    future_tpm = future_tpm * future_tpm
+
+collision_probabilities = []
+
+# Create a figure and axis object for the plot
+fig, ax = plt.subplots()
+
+# Plot the initial empty list
+line, = ax.plot(collision_probabilities)
+
+# Set the axis labels and title
+ax.set_xlabel('Iteration')
+ax.set_ylabel('collision Probability')
+ax.set_title('Markov chain Plot')
+
 
 def get_index(Vx,Vy,Dtheta):
     Vx = round(Vx/5)
@@ -898,7 +920,16 @@ def add_transition(current, next):
     transition_matrix[current][next] += 1
 
 def update_plot():
-    pass
+    global collision_probabilities
+    global future_tpm
+    global line
+    global ax
+    collision_probabilities.append(future_tpm[get_current_state()][states.index("Collision")])
+    line.set_ydata(collision_probabilities)
+    ax.relim()
+    ax.autoscale_view()
+    plt.draw()
+    plt.pause(0.01)
 
 
 
