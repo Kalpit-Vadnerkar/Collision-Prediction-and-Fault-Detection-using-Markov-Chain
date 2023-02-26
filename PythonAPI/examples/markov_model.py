@@ -514,14 +514,10 @@ class CollisionSensor(object):
         self.history.append((event.frame, intensity))
         if len(self.history) > 4000:
             self.history.pop(0)
-        if get_current_state() == 2299: # Collision already occured and car stuck
-            sys.exit()
         add_transition(get_current_state(),states.index("Collision"))
         print("Collision added at: " + str(get_current_state()) + ", " + str(states.index("Collision")))
-        row_sums = transition_matrix.sum(axis=1)
-        tpm = np.nan_to_num(transition_matrix / row_sums[:, np.newaxis])
-        np.save(file_path + "/tpm", tpm)
-        np.save(file_path + "/matrix", transition_matrix)
+        save_matrix()
+        print("Martix saved")
         set_current_state(states.index("Enter"))
         
 
@@ -820,10 +816,7 @@ def game_loop(args):
                 add_transition(get_current_state(), states.index("Exit"))
                 set_current_state(states.index("Enter"))
                 if count > 50:
-                    row_sums = transition_matrix.sum(axis=1)
-                    tpm = np.nan_to_num(transition_matrix / row_sums[:, np.newaxis])
-                    np.save(file_path + "/matrix", transition_matrix)
-                    np.save(file_path + "/tpm", tpm)
+                    save_matrix()
                     break
                 if args.loop:
                     agent.set_destination(random.choice(spawn_points).location)
@@ -858,6 +851,7 @@ def game_loop(args):
 # ==============================================================================
 
 speeds = [30,40,50,60,70,80,90]
+#speeds = [30,40,50,60]
 
 # Markov chain 
 file_path = "C:/Users/kvadner/Desktop/CARLA_0.9.14/WindowsNoEditor"
@@ -880,6 +874,14 @@ def get_current_state():
 def set_current_state(state):
     global current_state
     current_state = state
+
+def save_matrix():
+    global transition_matrix
+    global tpm
+    row_sums = transition_matrix.sum(axis=1)
+    tpm = np.nan_to_num(transition_matrix / row_sums[:, np.newaxis])
+    np.save(file_path + "/matrix", transition_matrix)
+    np.save(file_path + "/tpm", tpm)
 
 #transition_matrix = np.zeros((len(states), len(states)))
 transition_matrix = np.load(file_path + "/matrix.npy")
