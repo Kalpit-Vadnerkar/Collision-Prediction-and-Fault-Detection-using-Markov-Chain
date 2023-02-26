@@ -514,7 +514,15 @@ class CollisionSensor(object):
         self.history.append((event.frame, intensity))
         if len(self.history) > 4000:
             self.history.pop(0)
-        add_transition(current_state,states.index("Collision"))
+        if get_current_state() == 2299: # Collision already occured and car stuck
+            sys.exit()
+        add_transition(get_current_state(),states.index("Collision"))
+        print("Collision added at: " + str(get_current_state()) + ", " + str(states.index("Collision")))
+        row_sums = transition_matrix.sum(axis=1)
+        tpm = np.nan_to_num(transition_matrix / row_sums[:, np.newaxis])
+        np.save(file_path + "/tpm", tpm)
+        np.save(file_path + "/matrix", transition_matrix)
+        set_current_state(states.index("Enter"))
         
 
 # ==============================================================================
@@ -766,7 +774,7 @@ def game_loop(args):
         Vx1 = round(world.player.get_velocity().x)
         Vy1 = round(world.player.get_velocity().y)
 
-        curr_state = states.index("Enter")
+        #current_state = states.index("Enter")
         count = 0
         while True:
             clock.tick()
@@ -798,22 +806,23 @@ def game_loop(args):
                 if Dtheta > 9 or Dtheta < -9:
                     Dtheta = 0
                 next_state = get_index(Vx2,Vy2, Dtheta)
-                add_transition(curr_state, next_state)
+                add_transition(get_current_state(), next_state)
 
                 X1 = X2
                 Y1 = Y2
                 Vx1 = Vx2
                 Vy1 = Vy2
-                curr_state = next_state
-                current_state = next_state
+                set_current_state(next_state)
+                #current_state = next_state
 
             if agent.done():
                 count += 1
-                add_transition(curr_state, states.index("Exit"))
-                curr_state = states.index("Enter")
-                if count > 10:
+                add_transition(get_current_state(), states.index("Exit"))
+                set_current_state(states.index("Enter"))
+                if count > 50:
                     row_sums = transition_matrix.sum(axis=1)
                     tpm = np.nan_to_num(transition_matrix / row_sums[:, np.newaxis])
+                    np.save(file_path + "/matrix", transition_matrix)
                     np.save(file_path + "/tpm", tpm)
                     break
                 if args.loop:
@@ -862,10 +871,18 @@ states.append("Enter")
 states.append("Exit")
 states.append("Collision")
 
-current_state = 0
+current_state = states.index("Enter")
+
+def get_current_state():
+    global current_state
+    return int(current_state)
+
+def set_current_state(state):
+    global current_state
+    current_state = state
 
 #transition_matrix = np.zeros((len(states), len(states)))
-transition_matrix = np.load(file_path + "/tpm.npy")
+transition_matrix = np.load(file_path + "/matrix.npy")
 
 tpm = np.zeros((len(states), len(states)))
 
@@ -874,8 +891,9 @@ def get_index(Vx,Vy,Dtheta):
     Vy = round(Vy/5)
     return states.index((Vx, Vy, Dtheta))
 
-def add_transition(curr, next):
-    transition_matrix[curr][next] += 1
+def add_transition(current, next):
+    global transition_matrix
+    transition_matrix[current][next] += 1
 
 def update_plot():
     pass
