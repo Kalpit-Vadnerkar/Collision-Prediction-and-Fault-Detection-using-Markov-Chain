@@ -1,7 +1,7 @@
-![image](https://github.com/Kalpit-Vadnerkar/Collision-Prediction-and-Fault-Detection-using-Markov-Chain/blob/main/Screenshot%20from%202024-03-28%2015-43-18.png?raw=true)
 
 
-CARLA Simulator
+![alt text](https://github.com/Kalpit-Vadnerkar/Collision-Prediction-and-Fault-Detection-using-Markov-Chain/blob/main/Screenshot%20from%202024-03-28%2015-43-18.png?raw=true)
+# CARLA Simulator
 ===============
 
 Thanks for downloading CARLA!
@@ -55,3 +55,5 @@ this car with the WASD/arrow keys. Press 'h' to see all the options available.
 For more details and running options please refer to our online documentation
 
 <http://carla.readthedocs.io>
+
+
